@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VisionNote AI — Intelligent Video Intelligence</title>
+  <meta name="description"
+    content="Upload any audio/video or paste a YouTube URL — VisionNote AI generates cinematic summaries and lets you chat with your content using LangChain + RAG.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bebas+Neue&display=swap"
+    rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            background: '#050508',
+            foreground: '#f5f5f7',
+            primary: { DEFAULT: '#e50914', foreground: '#ffffff' },
+            accent: { DEFAULT: '#7c3aed', cyan: '#22d3ee' },
+            muted: { DEFAULT: '#18181f', foreground: '#9ca3af' },
+            border: '#27272f',
+            card: '#0b0b12'
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+            bebas: ['Bebas Neue', 'cursive']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="bg-background text-foreground font-inter antialiased overflow-x-hidden">
+
+  <!-- ══════════════ NAVBAR ══════════════ -->
+  <header id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-500">
+    <nav class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <a href="index.html" id="brand-logo" class="flex items-center gap-2 group">
+        <span
+          class="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/40 group-hover:scale-110 transition-transform duration-300">
+          <i class="fa-solid fa-eye text-white text-lg"></i>
+        </span>
+        <span class="font-bebas text-3xl tracking-widest">VISION<span class="text-primary">NOTE</span><span
+            class="text-accent-cyan text-xl ml-1">AI</span></span>
+      </a>
+      <ul class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+        <li><a href="#how-it-works" class="nav-link">How it works</a></li>
+        <li><a href="#features" class="nav-link">Features</a></li>
+        <li><a href="#assistant" class="nav-link">AI Assistant</a></li>
+        <li><a href="#upload-section" class="nav-link">Analyze</a></li>
+      </ul>
+      <a href="#upload-section"
+        class="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold shadow-lg shadow-primary/40 hover:shadow-primary/60 hover:scale-105 transition-all duration-300">
+        <i class="fa-solid fa-bolt"></i> Start Free
+      </a>
+    </nav>
+  </header>
+
+  <!-- ══════════════ HERO — DOT GLOBE ══════════════ -->
+  <section id="hero-section" class="relative w-full min-h-screen overflow-hidden flex items-center justify-center">
+    <!-- 3D wireframe globe canvas (Three.js) -->
+    <div id="globe-canvas-wrap" class="absolute inset-0 z-0 pointer-events-none"></div>
+
+    <!-- cinematic ambient layers -->
+    <div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/60 z-[1]"></div>
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse z-[1]"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-72 h-72 bg-accent/10 rounded-full blur-3xl animate-pulse z-[1]"
+      style="animation-delay:.7s"></div>
+    <div id="hero-particles" class="absolute inset-0 z-[1] pointer-events-none"></div>
+
+    <!-- hero content -->
+    <div class="relative z-10 text-center space-y-10 max-w-5xl mx-auto px-6 pt-28 pb-16">
+      <div
+        class="reveal-up inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-primary/20 via-primary/5 to-accent/20 border border-primary/30 backdrop-blur-xl shadow-2xl">
+        <span class="w-2 h-2 bg-primary rounded-full animate-ping"></span>
+        <span class="text-xs sm:text-sm font-bold text-primary tracking-[0.25em] uppercase">AI Video Intelligence ·
+          LangChain × RAG</span>
+        <span class="w-2 h-2 bg-accent-cyan rounded-full animate-ping" style="animation-delay:.5s"></span>
+      </div>
+
+      <h1 class="reveal-up font-black tracking-tighter leading-[0.9] select-none" style="animation-delay:.15s">
+        <span class="block font-light text-foreground/70 mb-3 text-3xl md:text-5xl lg:text-6xl">Every Frame.</span>
+        <span class="block relative text-5xl md:text-7xl lg:text-8xl xl:text-9xl">
+          <span class="hero-gradient-text">Understood.</span>
+          <span class="hero-glow-text" aria-hidden="true">Understood.</span>
+          <span id="hero-underline"
+            class="absolute -bottom-5 left-0 h-2.5 rounded-full bg-gradient-to-r from-primary via-primary/80 to-transparent shadow-lg shadow-primary/50"></span>
+        </span>
+      </h1>
+
+      <div class="reveal-up max-w-3xl mx-auto space-y-4" style="animation-delay:.35s">
+        <p class="text-lg md:text-2xl text-muted-foreground leading-relaxed font-medium">
+          Drop any video, audio or YouTube link — VisionNote AI watches it for you and delivers a
+          <span
+            class="text-foreground font-semibold bg-gradient-to-r from-primary/25 to-accent/20 px-2 py-1 rounded-md">cinematic,
+            chapter-perfect summary</span>
+        </p>
+        <p class="text-base md:text-lg text-muted-foreground/80">Then ask anything. The RAG-powered assistant answers
+          with timestamped precision.</p>
+      </div>
+
+      <div class="reveal-up flex flex-col sm:flex-row gap-5 justify-center items-center pt-2"
+        style="animation-delay:.5s">
+        <a href="#upload-section"
+          class="btn-shine group relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-primary via-primary to-red-700 text-white rounded-xl font-semibold text-lg shadow-xl shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-0.5 hover:scale-[1.03] transition-all duration-500 overflow-hidden">
+          <span class="relative z-10 tracking-wide">Analyze a Video</span>
+          <i
+            class="fa-solid fa-arrow-right relative z-10 group-hover:translate-x-2 transition-transform duration-300"></i>
+        </a>
+        <a href="#how-it-works"
+          class="group relative inline-flex items-center gap-3 px-8 py-4 border-2 border-border rounded-xl font-semibold text-lg hover:border-primary/50 transition-all duration-500 backdrop-blur-xl bg-background/60 hover:bg-background/90 shadow-lg hover:-translate-y-0.5">
+          <i
+            class="fa-solid fa-bolt text-accent-cyan group-hover:scale-110 group-hover:rotate-6 transition-all duration-300"></i>
+          <span class="tracking-wide">See How It Works</span>
+        </a>
+      </div>
+
+      <!-- live stats ticker -->
+      <div class="reveal-up grid grid-cols-3 gap-6 max-w-xl mx-auto pt-6" style="animation-delay:.65s">
+        <div class="stat-card"><span class="stat-num" data-count="98">0</span><span
+            class="text-primary font-bold">%</span>
+          <p class="stat-label">Summary Accuracy</p>
+        </div>
+        <div class="stat-card"><span class="stat-num" data-count="40">0</span><span
+            class="text-primary font-bold">×</span>
+          <p class="stat-label">Faster Than Watching</p>
+        </div>
+        <div class="stat-card"><span class="stat-num" data-count="12">0</span><span
+            class="text-primary font-bold">+</span>
+          <p class="stat-label">Formats Supported</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- scroll cue -->
+    <a href="#showcase"
+      class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 text-muted-foreground hover:text-primary transition-colors"
+      aria-label="Scroll down">
+      <i class="fa-solid fa-chevron-down text-xl animate-bounce"></i>
+    </a>
+  </section>
+
+  <!-- ══════════════ CINEMATIC SHOWCASE STRIP ══════════════ -->
+  <section id="showcase" class="relative py-28 overflow-hidden">
+    <div class="absolute inset-0">
+      <img src="images/cinema-wide.jpg" alt="Cinematic movie theater"
+        class="w-full h-full object-cover opacity-30 kenburns">
+      <div class="absolute inset-0 bg-gradient-to-b from-background via-background/40 to-background"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background"></div>
+    </div>
+    <div class="relative z-10 max-w-6xl mx-auto px-6 text-center space-y-6">
+      <p class="reveal-scroll text-primary font-bold tracking-[0.35em] uppercase text-xs">The Theater Of Understanding
+      </p>
+      <h2 class="reveal-scroll font-bebas text-5xl md:text-7xl tracking-wide leading-tight">
+        YOUR CONTENT DESERVES A <span
+          class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-red-400 to-accent">PREMIERE</span>
+      </h2>
+      <p class="reveal-scroll max-w-2xl mx-auto text-muted-foreground text-lg">
+        Like a director's cut for knowledge — VisionNote AI distills hours of footage into moments that matter, scene by
+        scene, insight by insight.
+      </p>
+      <!-- floating poster-style cards -->
+      <div class="reveal-scroll grid grid-cols-2 md:grid-cols-4 gap-4 pt-8">
+        <div class="poster-card"><i class="fa-solid fa-film text-3xl text-primary"></i>
+          <h3>Lectures</h3>
+          <p>2-hr classes → 3-min briefs</p>
+        </div>
+        <div class="poster-card" style="transition-delay:.1s"><i
+            class="fa-solid fa-podcast text-3xl text-accent-cyan"></i>
+          <h3>Podcasts</h3>
+          <p>Key takeaways, instantly</p>
+        </div>
+        <div class="poster-card" style="transition-delay:.2s"><i class="fa-brands fa-youtube text-3xl text-primary"></i>
+          <h3>YouTube</h3>
+          <p>Paste a link. Done.</p>
+        </div>
+        <div class="poster-card" style="transition-delay:.3s"><i class="fa-solid fa-briefcase text-3xl text-accent"></i>
+          <h3>Meetings</h3>
+          <p>Action items extracted</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ HOW IT WORKS ══════════════ -->
+  <section id="how-it-works" class="relative py-28">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="reveal-scroll text-accent-cyan font-bold tracking-[0.35em] uppercase text-xs mb-4">Behind The Scenes
+        </p>
+        <h2 class="reveal-scroll font-bebas text-5xl md:text-6xl tracking-wide">HOW THE <span
+            class="text-primary">MAGIC</span> HAPPENS</h2>
+      </div>
+      <div class="relative grid md:grid-cols-4 gap-8">
+        <div class="timeline-line hidden md:block"></div>
+        <article class="reveal-scroll step-card">
+          <div class="step-icon from-primary to-red-700"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+          <span class="step-num">01</span>
+          <h3>Ingest</h3>
+          <p>Upload MP4, MP3, WAV, MKV… or paste any YouTube URL. We extract pristine audio &amp; frames.</p>
+        </article>
+        <article class="reveal-scroll step-card" style="transition-delay:.15s">
+          <div class="step-icon from-accent to-purple-800"><i class="fa-solid fa-waveform-lines"></i></div>
+          <span class="step-num">02</span>
+          <h3>Transcribe</h3>
+          <p>Whisper-grade speech-to-text converts every spoken word into a rich, timestamped transcript.</p>
+        </article>
+        <article class="reveal-scroll step-card" style="transition-delay:.3s">
+          <div class="step-icon from-accent-cyan to-blue-700"><i class="fa-solid fa-brain"></i></div>
+          <span class="step-num">03</span>
+          <h3>Understand</h3>
+          <p>LangChain agents chunk, embed &amp; index content into a vector store — the brain of your video.</p>
+        </article>
+        <article class="reveal-scroll step-card" style="transition-delay:.45s">
+          <div class="step-icon from-emerald-500 to-teal-700"><i class="fa-solid fa-comments"></i></div>
+          <span class="step-num">04</span>
+          <h3>Converse</h3>
+          <p>Get an executive summary, then interrogate the content — RAG retrieval grounds every answer.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ FEATURES ══════════════ -->
+  <section id="features" class="relative py-28 overflow-hidden">
+    <div class="absolute inset-0">
+      <img src="images/home-cinema.jpg" alt="" class="w-full h-full object-cover opacity-20">
+      <div class="absolute inset-0 bg-gradient-to-b from-background via-background/70 to-background"></div>
+    </div>
+    <div class="relative z-10 max-w-6xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="reveal-scroll text-primary font-bold tracking-[0.35em] uppercase text-xs mb-4">The Feature Reel</p>
+        <h2 class="reveal-scroll font-bebas text-5xl md:text-6xl tracking-wide">BUILT FOR <span
+            class="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent">BINGE-LEVEL</span> INSIGHT
+        </h2>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <article class="reveal-scroll feature-card"><i class="fa-solid fa-scroll feature-ic text-primary"></i>
+          <h3>Cinematic Summaries</h3>
+          <p>Chapter-wise breakdowns with key quotes, themes &amp; a TL;DR — structured like a screenplay.</p>
+        </article>
+        <article class="reveal-scroll feature-card" style="transition-delay:.1s"><i
+            class="fa-solid fa-robot feature-ic text-accent-cyan"></i>
+          <h3>RAG Chat Assistant</h3>
+          <p>Ask anything about the content. Answers are grounded in the actual transcript — zero hallucination.</p>
+        </article>
+        <article class="reveal-scroll feature-card" style="transition-delay:.2s"><i
+            class="fa-solid fa-stopwatch feature-ic text-accent"></i>
+          <h3>Timestamp Citations</h3>
+          <p>Every insight links back to the exact moment in the video. Jump straight to the source.</p>
+        </article>
+        <article class="reveal-scroll feature-card"><i class="fa-solid fa-language feature-ic text-emerald-400"></i>
+          <h3>Multi-Language</h3>
+          <p>Transcribe &amp; summarize content in 50+ languages with automatic detection.</p>
+        </article>
+        <article class="reveal-scroll feature-card" style="transition-delay:.1s"><i
+            class="fa-solid fa-list-check feature-ic text-amber-400"></i>
+          <h3>Action Item Mining</h3>
+          <p>Meetings become checklists. Decisions, owners and deadlines extracted automatically.</p>
+        </article>
+        <article class="reveal-scroll feature-card" style="transition-delay:.2s"><i
+            class="fa-solid fa-shield-halved feature-ic text-rose-400"></i>
+          <h3>Private By Design</h3>
+          <p>Your files are processed in isolation and never used to train models.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ AI ASSISTANT SHOWCASE ══════════════ -->
+  <section id="assistant" class="relative py-28">
+    <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-14 items-center">
+      <div class="reveal-scroll relative order-2 lg:order-1">
+        <div
+          class="absolute -inset-6 bg-gradient-to-br from-primary/20 via-accent/20 to-accent-cyan/20 rounded-3xl blur-2xl">
+        </div>
+        <img src="images/ai-chatbot-hero.png" alt="AI chatbot assistant analyzing video content on a smartphone"
+          class="relative rounded-3xl border border-border shadow-2xl shadow-accent/20 float-slow w-full">
+      </div>
+      <div class="space-y-6 order-1 lg:order-2">
+        <p class="reveal-scroll text-accent-cyan font-bold tracking-[0.35em] uppercase text-xs">Meet Your Co-Watcher</p>
+        <h2 class="reveal-scroll font-bebas text-5xl md:text-6xl tracking-wide leading-tight">AN ASSISTANT THAT <span
+            class="text-primary">WATCHED</span> EVERY SECOND</h2>
+        <p class="reveal-scroll text-muted-foreground text-lg leading-relaxed">
+          Powered by LangChain agents orchestrating LLMs over a retrieval-augmented memory of your media —
+          it doesn't guess, it <em class="text-foreground not-italic font-semibold">recalls</em>.
+        </p>
+        <ul class="space-y-4">
+          <li class="reveal-scroll assistant-point"><i class="fa-solid fa-quote-left"></i>"What did the speaker say
+            about pricing?" — answered with the exact quote &amp; timestamp.</li>
+          <li class="reveal-scroll assistant-point" style="transition-delay:.15s"><i
+              class="fa-solid fa-diagram-project"></i>Agentic reasoning chains combine transcript, visual and metadata
+            context.</li>
+          <li class="reveal-scroll assistant-point" style="transition-delay:.3s"><i
+              class="fa-solid fa-bolt"></i>Streaming responses — insights arrive while you're still typing the next
+            question.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ UPLOAD / URL SECTION ══════════════ -->
+  <section id="upload-section" class="relative py-28">
+    <div class="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent"></div>
+    <div class="relative z-10 max-w-3xl mx-auto px-6 text-center space-y-10">
+      <div>
+        <p class="reveal-scroll text-primary font-bold tracking-[0.35em] uppercase text-xs mb-4">Roll The Film</p>
+        <h2 class="reveal-scroll font-bebas text-5xl md:text-6xl tracking-wide">START YOUR <span
+            class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">ANALYSIS</span></h2>
+        <p class="reveal-scroll text-muted-foreground mt-4">Paste a YouTube URL or upload a file — the premiere begins
+          in seconds.</p>
+      </div>
+
+      <!-- Tab switch -->
+      <div class="reveal-scroll inline-flex p-1.5 rounded-2xl bg-muted border border-border">
+        <button id="tab-url" class="tab-btn tab-active" type="button"><i class="fa-brands fa-youtube mr-2"></i>YouTube
+          URL</button>
+        <button id="tab-file" class="tab-btn" type="button"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>Upload
+          File</button>
+      </div>
+
+      <!-- URL panel -->
+      <div id="panel-url" class="reveal-scroll">
+        <form id="url-form" class="url-bar group">
+          <i class="fa-brands fa-youtube text-primary text-2xl pl-5"></i>
+          <input id="youtube-url-input" type="url" required placeholder="https://www.youtube.com/watch?v=…"
+            aria-label="YouTube video URL"
+            class="flex-1 bg-transparent px-4 py-5 text-base md:text-lg outline-none placeholder:text-muted-foreground/50">
+          <button type="submit" id="url-submit-btn"
+            class="btn-shine relative overflow-hidden m-2 inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-primary to-red-700 text-white font-semibold shadow-lg shadow-primary/40 hover:scale-105 transition-all duration-300">
+            <span class="relative z-10">Analyze</span><i class="fa-solid fa-wand-magic-sparkles relative z-10"></i>
+          </button>
+        </form>
+        <p class="text-xs text-muted-foreground/60 mt-3">Works with youtube.com &amp; youtu.be links · public videos
+          only</p>
+      </div>
+
+      <!-- File panel -->
+      <div id="panel-file" class="reveal-scroll hidden">
+        <label id="dropzone" for="file-input" class="dropzone group">
+          <input id="file-input" type="file" class="sr-only"
+            accept=".mp4,.mkv,.mov,.webm,.avi,.mp3,.wav,.m4a,.aac,.flac,.ogg">
+          <i
+            class="fa-solid fa-file-arrow-up text-4xl text-primary group-hover:scale-110 transition-transform duration-300"></i>
+          <p class="text-lg font-semibold mt-4">Drag &amp; drop your media here</p>
+          <p class="text-muted-foreground text-sm mt-1">or <span
+              class="text-accent-cyan underline underline-offset-4">browse from your PC</span></p>
+          <div class="flex flex-wrap justify-center gap-2 mt-5 text-[11px] text-muted-foreground">
+            <span class="chip">🎬 Video: MP4 · MKV · MOV · WEBM · AVI</span>
+            <span class="chip">🎧 Audio: MP3 · WAV · M4A · AAC · FLAC</span>
+            <span class="chip">📦 Max size: 500 MB</span>
+            <span class="chip">⏱ Max length: 3 hours</span>
+          </div>
+        </label>
+        <div id="file-selected"
+          class="hidden mt-4 flex items-center justify-between gap-4 p-4 rounded-xl bg-muted border border-border text-left">
+          <div class="flex items-center gap-3 min-w-0">
+            <i class="fa-solid fa-file-video text-primary text-xl"></i>
+            <div class="min-w-0">
+              <p id="file-name" class="font-semibold truncate"></p>
+              <p id="file-size" class="text-xs text-muted-foreground"></p>
+            </div>
+          </div>
+          <button id="analyze-file-btn" type="button"
+            class="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-red-700 text-white font-semibold text-sm shadow-lg shadow-primary/40 hover:scale-105 transition-all">
+            Analyze <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </button>
+        </div>
+      </div>
+      <p id="upload-error" class="hidden text-sm text-rose-400 font-medium"></p>
+    </div>
+  </section>
+
+  <!-- ══════════════ LANGUAGE SELECT MODAL ══════════════ -->
+  <div id="lang-modal" class="hidden fixed inset-0 z-[70] items-center justify-center px-6" role="dialog"
+    aria-modal="true" aria-labelledby="lang-modal-title">
+    <div id="lang-backdrop" class="absolute inset-0 bg-background/80 backdrop-blur-md"></div>
+    <div
+      class="lang-card relative z-10 w-full max-w-lg rounded-3xl border border-border bg-card p-8 shadow-2xl shadow-primary/20">
+      <div class="text-center space-y-2 mb-8">
+        <span
+          class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/40 text-2xl text-white mb-2"><i
+            class="fa-solid fa-language"></i></span>
+        <h3 id="lang-modal-title" class="font-bebas text-4xl tracking-wide">CHOOSE SUMMARY <span
+            class="text-primary">LANGUAGE</span></h3>
+        <p class="text-muted-foreground text-sm">How should VisionNote AI narrate your summary &amp; chat?</p>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <button type="button" class="lang-option group" data-lang="english">
+          <span class="lang-flag">🇬🇧</span>
+          <span class="font-bold text-lg">English</span>
+          <span class="text-xs text-muted-foreground">Professional, executive-grade prose</span>
+          <span class="lang-sample">"The speaker argues that agentic AI will define the decade…"</span>
+        </button>
+        <button type="button" class="lang-option group" data-lang="hinglish">
+          <span class="lang-flag">🇮🇳</span>
+          <span class="font-bold text-lg">Hinglish</span>
+          <span class="text-xs text-muted-foreground">Hindi + English, desi-casual style</span>
+          <span class="lang-sample">"Speaker ka point simple hai — agentic AI hi agla decade define karega…"</span>
+        </button>
+      </div>
+      <button id="lang-cancel" type="button"
+        class="mt-6 w-full py-3 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ══════════════ FOOTER ══════════════ -->
+  <footer class="border-t border-border py-10">
+    <div
+      class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+      <p class="font-bebas text-xl tracking-widest">VISION<span class="text-primary">NOTE</span><span
+          class="text-accent-cyan ml-1">AI</span> <span class="text-muted-foreground font-inter text-xs ml-2">© 2026 ·
+          AI Video Intelligence</span></p>
+      <p>Powered by LangChain Agents · LLM · RAG</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>

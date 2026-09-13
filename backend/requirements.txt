@@ -1,0 +1,34 @@
+# VisionNote AI — FastAPI backend
+# Python 3.10+ recommended.
+# On Windows: chromadb requires hnswlib which needs MSVC compiler.
+# We use faiss-cpu instead — pre-built wheels, no compiler needed.
+
+# ===== API framework =====
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+python-dotenv
+
+# ===== Audio acquisition =====
+yt-dlp
+pydub
+ffmpeg-python         
+
+# ===== Transcription (local Whisper + Sarvam via HTTP) =====
+openai-whisper
+requests
+
+# ===== LangChain + Mistral (summarisation, extraction, RAG) =====
+langchain
+langchain-core
+langchain-community
+langchain-mistralai
+langchain-text-splitters
+mistralai
+
+# ===== RAG pipeline — FAISS (Windows-compatible, no compiler needed) =====
+faiss-cpu
+langchain-huggingface
+sentence-transformers
+numpy
