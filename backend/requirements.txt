@@ -32,5 +32,3 @@ faiss-cpu
 langchain-huggingface
 sentence-transformers
 numpy
-
-pyaudioop
