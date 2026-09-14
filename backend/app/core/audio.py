@@ -62,9 +62,16 @@ def download_youtube_audio(url: str, session_id: str) -> Path:
         "quiet": True,
         "noplaylist": True,
         "progress_hooks": [hook],
+        # The android client skips some of the web bot-check flow that trips
+        # up plain cloud-IP requests. Cheap first line of defense even
+        # without cookies.
+        "extractor_args": {"youtube": {"player_client": ["android"]}},
     }
     if settings.FFMPEG_LOCATION:
         ydl_opts["ffmpeg_location"] = settings.FFMPEG_LOCATION
+    if settings.YT_COOKIES_FILE and os.path.exists(settings.YT_COOKIES_FILE):
+        ydl_opts["cookiefile"] = settings.YT_COOKIES_FILE
+        logger.info("Using YouTube cookies file for authenticated download")
 
     logger.info("Downloading YouTube audio: %s", url)
     try:

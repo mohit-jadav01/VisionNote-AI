@@ -58,6 +58,11 @@ class Settings:
     # ffmpeg: prefer PATH, fall back to an explicit location from .env
     FFMPEG_LOCATION: str | None = shutil.which("ffmpeg") or os.getenv("FFMPEG_LOCATION")
 
+    # Path to a Netscape-format cookies.txt for yt-dlp, used to authenticate
+    # as a real YouTube session so cloud/datacenter IPs aren't blocked as bots.
+    # On Render, upload via Settings → Secret Files (mounts at /etc/secrets/<name>).
+    YT_COOKIES_FILE: str | None = os.getenv("YT_COOKIES_FILE")
+
     # ── Vector store (RAG) — same stack as the demo ────────────────────
     CHROMA_DIR: Path = BASE_DIR / "vector_db"
     COLLECTION_PREFIX: str = "meeting_transcript"
