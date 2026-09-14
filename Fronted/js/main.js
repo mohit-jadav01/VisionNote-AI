@@ -10,7 +10,9 @@
   'use strict';
 
   /* ── API base URL — change this if your backend runs on a different port ── */
-  const API_BASE = 'http://localhost:8000';
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8000'
+    : 'https://visionnote-ai.onrender.com';
 
   /* ---------- 1. THREE.JS DOT-GLOBE HERO ---------- */
   function initGlobe() {
