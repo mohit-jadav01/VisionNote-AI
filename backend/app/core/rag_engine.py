@@ -7,14 +7,19 @@ Same evidence-only system prompt as the original demo, upgraded with:
     • per-session retrievers (no cross-user leakage),
     • citation extraction (source chunks returned alongside the answer),
     • optional Hinglish answer style forwarded from the frontend `lang` param.
+
+Import notes
+  -----------
+  langchain_core.prompts is NOT imported at module level.  It transitively
+  imports langchain_core.language_models.base which does
+  `from transformers import GPT2TokenizerFast`, pulling in the full
+  transformers + torch stack.  All heavy langchain imports are deferred to
+  the functions that actually use them.
 """
 
 from __future__ import annotations
 
 import logging
-
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 
 from app.core.llm import get_llm
 from app.core.vector_store import build_vector_store, get_retriever, load_vector_store
@@ -200,6 +205,11 @@ def answer_question(
 
     context = format_docs(docs)
     style_note = HINGLISH_STYLE_NOTE if language.lower() == "hinglish" else ""
+
+    # Lazy imports: deferred here so module-level import of rag_engine never
+    # triggers the langchain_core → transformers → torch chain.
+    from langchain_core.prompts import ChatPromptTemplate  # noqa: PLC0415
+    from langchain_core.output_parsers import StrOutputParser  # noqa: PLC0415
 
     prompt = ChatPromptTemplate.from_messages(
         [("system", RAG_SYSTEM_PROMPT), ("human", "{question}")]
