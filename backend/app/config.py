@@ -72,7 +72,9 @@ class Settings:
     RAG_TOP_K: int = int(os.getenv("RAG_TOP_K", "4"))
 
     # ── Summarisation ──────────────────────────────────────────────────
-    SUMMARY_CHUNK_SIZE: int = 3000
+    # Larger chunks = fewer Mistral API calls per transcript, which helps
+    # avoid 429 rate_limited errors on lower-tier API plans.
+    SUMMARY_CHUNK_SIZE: int = 7000
     SUMMARY_CHUNK_OVERLAP: int = 200
 
     # ── Sessions ───────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ optional progress callbacks for the frontend overlay.
 from __future__ import annotations
 
 import logging
+import time
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -138,6 +139,10 @@ def summarize(transcript: str, on_progress=None) -> str:
         partial_summaries.append(map_chain.invoke(chunk))
         if on_progress:
             on_progress(i, len(chunks))
+        # Throttle: space out requests so we don't burst past Mistral's
+        # requests-per-second / tokens-per-minute rate limit (429s).
+        if i < len(chunks):
+            time.sleep(1)
 
     combined = "\n\n".join(partial_summaries)
     combine_chain = build_text_chain(COMBINE_PROMPT)

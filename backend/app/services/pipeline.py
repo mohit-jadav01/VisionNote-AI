@@ -28,7 +28,9 @@ from app.services.sessions import Session
 logger = logging.getLogger("visionnote.pipeline")
 
 # Dedicated worker pool: heavy jobs never block the API event loop.
-_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="vidsage-pipeline")
+# max_workers=1: two simultaneous analyses would double the request rate
+# against the Mistral API and make 429 rate_limited errors more likely.
+_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="vidsage-pipeline")
 
 
 def submit_analysis(session: Session, *, upload_path: Path | None = None) -> None:
