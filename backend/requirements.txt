@@ -3,6 +3,12 @@
 # On Windows: chromadb requires hnswlib which needs MSVC compiler.
 # We use faiss-cpu instead — pre-built wheels, no compiler needed.
 
+# ===== Force CPU-only torch (the default PyPI wheel pulls ~5GB of CUDA =====
+# ===== libs that Render's CPU instances never use — this alone was    =====
+# ===== the cause of the 512Mi OOM kill during deploy).                =====
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+
 # ===== API framework =====
 fastapi
 uvicorn[standard]
@@ -20,7 +26,10 @@ openai-whisper
 requests
 
 # ===== LangChain + Mistral (summarisation, extraction, RAG) =====
-langchain
+# NOTE: bare `langchain` removed — it is never imported anywhere in this
+# codebase, and it transitively pulls in the entire langgraph stack
+# (langgraph, langgraph-checkpoint, langgraph-prebuilt, langgraph-sdk,
+# langchain-classic), which was adding real RAM weight for zero use.
 langchain-core
 langchain-community
 langchain-mistralai
