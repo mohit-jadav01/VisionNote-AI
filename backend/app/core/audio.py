@@ -17,6 +17,7 @@ from __future__ import annotations
 import logging
 import os
 import re
+import shutil
 import uuid
 from pathlib import Path
 
@@ -69,22 +70,63 @@ def download_youtube_audio(url: str, session_id: str) -> Path:
     }
     if settings.FFMPEG_LOCATION:
         ydl_opts["ffmpeg_location"] = settings.FFMPEG_LOCATION
+
+    # yt-dlp doesn't just *read* cookiefile — on YoutubeDL.close() it writes
+    # the (possibly refreshed) cookie jar back to that same path. Render
+    # Secret Files (e.g. /etc/secrets/cookies.txt) are mounted READ-ONLY at
+    # runtime, so pointing cookiefile straight at settings.YT_COOKIES_FILE
+    # crashes with "OSError: [Errno 30] Read-only file system" during
+    # cleanup — which then masks whatever the real download error was.
+    # Fix: stage a writable copy per-session and point yt-dlp at that.
     if settings.YT_COOKIES_FILE and os.path.exists(settings.YT_COOKIES_FILE):
-        ydl_opts["cookiefile"] = settings.YT_COOKIES_FILE
-        logger.info("Using YouTube cookies file for authenticated download")
+        writable_cookies = workdir / "cookies.txt"
+        try:
+            shutil.copy(settings.YT_COOKIES_FILE, writable_cookies)
+            ydl_opts["cookiefile"] = str(writable_cookies)
+            logger.info("Using YouTube cookies file for authenticated download")
+        except OSError as exc:
+            logger.warning("Could not stage a writable cookies copy: %s", exc)
 
     logger.info("Downloading YouTube audio: %s", url)
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
     except Exception as exc:  # yt-dlp raises many exception types
-        raise AudioProcessingError(f"YouTube download failed: {exc}") from exc
+        raise AudioProcessingError(_friendly_download_error(exc)) from exc
 
     raw_file = captured.get("raw_file", "")
     if not raw_file or not os.path.exists(raw_file):
         raise AudioProcessingError(f"yt-dlp did not produce a file for: {url}")
 
     return convert_to_wav(Path(raw_file), delete_source=True)
+
+
+def _friendly_download_error(exc: Exception) -> str:
+    """Translate common yt-dlp/YouTube failures into actionable messages
+    instead of leaking raw tracebacks (e.g. a cleanup-time OSError) to the
+    frontend, which hides the real cause from whoever is debugging it."""
+    msg = str(exc)
+    lowered = msg.lower()
+    if "sign in to confirm" in lowered or "not a bot" in lowered:
+        return (
+            "YouTube blocked this download with a bot-check. The stored "
+            "YouTube cookies are expired — export a fresh cookies.txt from "
+            "a logged-in browser and re-upload it as the YT_COOKIES_FILE "
+            "Secret File on Render, then redeploy."
+        )
+    if "read-only file system" in lowered:
+        return (
+            "Internal error: tried to write to a read-only cookies path. "
+            "(This is fixed by staging a writable copy — redeploy the "
+            "latest backend build.)"
+        )
+    if "http error 403" in lowered:
+        return (
+            "YouTube refused the request (403 Forbidden). This usually "
+            "means the cookies are stale/rotated or the server IP is "
+            "temporarily rate-limited by YouTube."
+        )
+    return f"YouTube download failed: {msg}"
 
 
 def convert_to_wav(input_path: Path, delete_source: bool = False) -> Path:
