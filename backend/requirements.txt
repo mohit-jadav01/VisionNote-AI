@@ -17,7 +17,7 @@ pydantic
 python-dotenv
 
 # ===== Audio acquisition =====
-yt-dlp>=2026.9.1
+yt-dlp
 pydub
 ffmpeg-python         
 
