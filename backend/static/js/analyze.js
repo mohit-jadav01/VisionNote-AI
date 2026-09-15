@@ -12,7 +12,7 @@
   'use strict';
 
   /* ── API base URL — must match main.js ── */
-  const API_BASE = 'http://localhost:8000';
+  const API_BASE = '';
 
   /* ── URL params ── */
   const params = new URLSearchParams(location.search);

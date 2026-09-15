@@ -10,7 +10,7 @@
   'use strict';
 
   /* ── API base URL — change this if your backend runs on a different port ── */
-  const API_BASE = 'http://localhost:8000';
+  const API_BASE = '';
 
   /* ---------- 1. THREE.JS DOT-GLOBE HERO ---------- */
   function initGlobe() {
