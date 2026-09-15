@@ -63,10 +63,16 @@ def download_youtube_audio(url: str, session_id: str) -> Path:
         "quiet": True,
         "noplaylist": True,
         "progress_hooks": [hook],
-        # The android client skips some of the web bot-check flow that trips
-        # up plain cloud-IP requests. Cheap first line of defense even
-        # without cookies.
-        "extractor_args": {"youtube": {"player_client": ["android"]}},
+        # IMPORTANT: "android" does NOT support cookies — if a cookies file
+        # is attached, yt-dlp silently drops "android" from this list and
+        # falls back to the default web client, which is the one currently
+        # most likely to get bot-checked and returned only image/storyboard
+        # formats ("Only images are available for download"). Use clients
+        # that DO support cookies, with fallbacks, instead of pinning to
+        # android alone.
+        "extractor_args": {
+            "youtube": {"player_client": ["tv", "web_safari", "web"]}
+        },
     }
     if settings.FFMPEG_LOCATION:
         ydl_opts["ffmpeg_location"] = settings.FFMPEG_LOCATION
